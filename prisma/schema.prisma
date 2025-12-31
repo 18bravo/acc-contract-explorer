@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model ContractVehicle {
+  id              String   @id
+  name            String
+  description     String?
+  agency          String?
+  piidPrefix      String?  @map("piid_prefix")
+  taskOrderCount  Int      @default(0) @map("task_order_count")
+  totalObligated  Float    @default(0) @map("total_obligated")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  taskOrders TaskOrder[]
+
+  @@map("contract_vehicles")
+}
+
+model TaskOrder {
+  id                          Int       @id @default(autoincrement())
+  piid                        String
+  parentIdvPiid               String?   @map("parent_idv_piid")
+  vehicleId                   String?   @map("vehicle_id")
+  vehicleName                 String?   @map("vehicle_name")
+
+  // Vendor information
+  vendorName                  String?   @map("vendor_name")
+  vendorUei                   String?   @map("vendor_uei")
+  cageCode                    String?   @map("cage_code")
+
+  // Award details
+  awardDescription            String?   @map("award_description")
+  productOrServiceDescription String?   @map("product_or_service_description")
+  naicsDescription            String?   @map("naics_description")
+
+  // Dates
+  awardDate                   String?   @map("award_date")
+  periodOfPerformanceStart    String?   @map("period_of_performance_start")
+  periodOfPerformanceEnd      String?   @map("period_of_performance_end")
+
+  // Financial
+  obligatedAmount             Float?    @map("obligated_amount")
+  baseAndExercisedValue       Float?    @map("base_and_exercised_value")
+  potentialValue              Float?    @map("potential_value")
+
+  // Classification codes
+  naicsCode                   String?   @map("naics_code")
+  pscCode                     String?   @map("psc_code")
+
+  // Agencies
+  awardingAgency              String?   @map("awarding_agency")
+  fundingAgency               String?   @map("funding_agency")
+
+  // Location
+  placeOfPerformanceState     String?   @map("place_of_performance_state")
+  placeOfPerformanceCountry   String?   @map("place_of_performance_country")
+
+  // Metadata
+  lastModifiedDate            String?   @map("last_modified_date")
+  createdAt                   DateTime  @default(now()) @map("created_at")
+
+  // Relation
+  vehicle                     ContractVehicle? @relation(fields: [vehicleId], references: [id])
+
+  @@index([vehicleId])
+  @@index([vendorName])
+  @@index([awardDate])
+  @@index([piid])
+  @@index([obligatedAmount])
+  @@map("task_orders")
+}
