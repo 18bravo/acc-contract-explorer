@@ -1,8 +1,19 @@
 import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
 import * as fs from "fs";
 import * as path from "path";
+import "dotenv/config";
 
-const prisma = new PrismaClient();
+// Create Prisma client with pg adapter
+const connectionString = process.env.DATABASE_URL;
+if (!connectionString) {
+  throw new Error("DATABASE_URL environment variable is not set");
+}
+
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 
 // Vehicle configurations
 const VEHICLES: Record<
@@ -223,6 +234,11 @@ async function importData() {
 
       await prisma.taskOrder.createMany({ data: records });
       imported += records.length;
+
+      // Progress indicator
+      if (i % 2000 === 0 && i > 0) {
+        console.log(`  ... ${i.toLocaleString()} / ${dataRows.length.toLocaleString()}`);
+      }
     }
 
     vehicleStats[vehicleId] = { count: imported, total: totalObligated };
@@ -253,10 +269,12 @@ async function importData() {
   console.log(`Total task orders imported: ${totalImported.toLocaleString()}`);
 
   await prisma.$disconnect();
+  await pool.end();
 }
 
 importData().catch((e) => {
   console.error("Import failed:", e);
   prisma.$disconnect();
+  pool.end();
   process.exit(1);
 });
