@@ -75,3 +75,18 @@ model TaskOrder {
   @@index([obligatedAmount])
   @@map("task_orders")
 }
+
+model SearchJob {
+  id              Int       @id @default(autoincrement())
+  query           String
+  status          String    @default("pending") // pending, running, completed, failed
+  internalCount   Int       @default(0) @map("internal_count")
+  externalCount   Int       @default(0) @map("external_count")
+  newRecords      Int       @default(0) @map("new_records")
+  externalResults Json?     @map("external_results") // Cached external results for display
+  error           String?
+  createdAt       DateTime  @default(now()) @map("created_at")
+  completedAt     DateTime? @map("completed_at")
+
+  @@map("search_jobs")
+}

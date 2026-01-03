@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 
 interface TaskOrder {
   id: number;
@@ -77,9 +77,8 @@ export function TaskOrderTable({ taskOrders, isLoading }: TaskOrderTableProps) {
         </thead>
         <tbody className="divide-y divide-zinc-200 dark:divide-zinc-700">
           {taskOrders.map((order) => (
-            <>
+            <Fragment key={order.id}>
               <tr
-                key={order.id}
                 onClick={() => setExpandedRow(expandedRow === order.id ? null : order.id)}
                 className="cursor-pointer transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
               >
@@ -103,7 +102,7 @@ export function TaskOrderTable({ taskOrders, isLoading }: TaskOrderTableProps) {
                 </td>
               </tr>
               {expandedRow === order.id && (
-                <tr key={`${order.id}-expanded`}>
+                <tr>
                   <td colSpan={6} className="bg-zinc-50 px-4 py-4 dark:bg-zinc-800/50">
                     <div className="grid gap-4 md:grid-cols-2">
                       <div>
@@ -136,7 +135,7 @@ export function TaskOrderTable({ taskOrders, isLoading }: TaskOrderTableProps) {
                   </td>
                 </tr>
               )}
-            </>
+            </Fragment>
           ))}
         </tbody>
       </table>

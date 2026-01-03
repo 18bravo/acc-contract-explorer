@@ -11,6 +11,7 @@
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:import": "npx tsx scripts/import-data.ts",
+    "db:setup-search": "npx tsx scripts/setup-search.ts",
     "db:studio": "prisma studio"
   },
   "dependencies": {
@@ -18,6 +19,7 @@
     "@prisma/client": "^7.2.0",
     "dotenv": "^17.2.3",
     "next": "16.1.1",
+    "openai": "^6.15.0",
     "pg": "^8.16.3",
     "prisma": "^7.2.0",
     "react": "19.2.3",
