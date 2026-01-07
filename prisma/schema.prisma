@@ -245,6 +245,8 @@ model ServiceContract {
   modifications           ContractModification[]
   subawards               Subaward[]
   wasteScore              WasteScore?
+  riskScore               ContractRiskScore?
+  costObservations        ContractCostObservation[]
   contractingOffice       DoDOrganization? @relation(fields: [contractingOfficeId], references: [id])
 
   @@index([vendorUei])
@@ -350,4 +352,82 @@ model DoDOrganization {
   @@index([parentId])
   @@index([level])
   @@map("dod_organizations")
+}
+
+// ============================================================================
+// Risk Model (Black-Scholes Cost Risk)
+// ============================================================================
+
+enum ConfidenceLevel {
+  high   // 50+ observations
+  medium // 20-49 observations
+  low    // <20 observations
+}
+
+model VolatilityParameter {
+  id                Int       @id @default(autoincrement())
+  pscCode           String    @map("psc_code")
+  agencyCode        String?   @map("agency_code")
+  sigma             Decimal   @db.Decimal(8, 4) // Annualized volatility (e.g., 0.2500 = 25%)
+  observationCount  Int       @map("observation_count")
+  confidenceLevel   ConfidenceLevel @map("confidence_level")
+  lastCalculated    DateTime  @map("last_calculated")
+
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  @@unique([pscCode, agencyCode])
+  @@index([pscCode])
+  @@index([confidenceLevel])
+  @@map("volatility_parameters")
+}
+
+model ContractRiskScore {
+  id                      Int       @id @default(autoincrement())
+  contractId              Int       @unique @map("contract_id")
+
+  // Current state
+  currentRatio            Decimal   @map("current_ratio") @db.Decimal(8, 4)
+  impliedVolatility       Decimal   @map("implied_volatility") @db.Decimal(8, 4)
+  lifecycleStage          Int       @map("lifecycle_stage") // 0-100 percent complete
+  lifecycleMultiplier     Decimal   @map("lifecycle_multiplier") @db.Decimal(4, 2)
+
+  // Outputs
+  riskScore               Int       @map("risk_score") // 0-100
+  expectedCostLow         Decimal?  @map("expected_cost_low") @db.Decimal(15, 2) // 10th percentile
+  expectedCostMid         Decimal?  @map("expected_cost_mid") @db.Decimal(15, 2) // 50th percentile
+  expectedCostHigh        Decimal?  @map("expected_cost_high") @db.Decimal(15, 2) // 90th percentile
+  ceilingBreachProb       Decimal   @map("ceiling_breach_prob") @db.Decimal(5, 2) // 0-100%
+  monthsToWarning         Int?      @map("months_to_warning")
+
+  // Confidence from underlying volatility parameter
+  confidenceLevel         ConfidenceLevel @map("confidence_level")
+
+  calculatedAt            DateTime  @map("calculated_at")
+  createdAt               DateTime  @default(now()) @map("created_at")
+  updatedAt               DateTime  @updatedAt @map("updated_at")
+
+  contract                ServiceContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@index([riskScore(sort: Desc)])
+  @@index([ceilingBreachProb(sort: Desc)])
+  @@index([monthsToWarning])
+  @@index([confidenceLevel])
+  @@map("contract_risk_scores")
+}
+
+model ContractCostObservation {
+  id                Int       @id @default(autoincrement())
+  contractId        Int       @map("contract_id")
+  observationDate   DateTime  @map("observation_date")
+  ceilingValue      Decimal   @map("ceiling_value") @db.Decimal(15, 2)
+  obligationValue   Decimal   @map("obligation_value") @db.Decimal(15, 2)
+  ratio             Decimal   @db.Decimal(8, 4)
+
+  createdAt         DateTime  @default(now()) @map("created_at")
+
+  contract          ServiceContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@index([contractId, observationDate])
+  @@map("contract_cost_observations")
 }
