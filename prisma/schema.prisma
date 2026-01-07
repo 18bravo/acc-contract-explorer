@@ -184,3 +184,170 @@ model BudgetTrend {
   @@index([fiscalYear])
   @@map("budget_trends")
 }
+
+// ============================================================================
+// Contract Waste Screener Models
+// ============================================================================
+
+model ServiceContract {
+  id                      Int       @id @default(autoincrement())
+  piid                    String    @unique
+  parentIdvPiid           String?   @map("parent_idv_piid")
+
+  // Award details
+  awardDescription        String?   @map("award_description") @db.Text
+  awardType               String?   @map("award_type")
+  contractType            String?   @map("contract_type")
+
+  // Dates
+  awardDate               DateTime? @map("award_date")
+  periodOfPerformanceStart DateTime? @map("period_of_performance_start")
+  periodOfPerformanceEnd   DateTime? @map("period_of_performance_end")
+
+  // Financial
+  baseValue               Decimal?  @map("base_value") @db.Decimal(15, 2)
+  currentValue            Decimal?  @map("current_value") @db.Decimal(15, 2)
+  obligatedAmount         Decimal?  @map("obligated_amount") @db.Decimal(15, 2)
+  awardCeiling            Decimal?  @map("award_ceiling") @db.Decimal(15, 2)
+
+  // Classification
+  naicsCode               String?   @map("naics_code")
+  naicsDescription        String?   @map("naics_description")
+  pscCode                 String?   @map("psc_code")
+  pscDescription          String?   @map("psc_description")
+
+  // Vendor
+  vendorName              String?   @map("vendor_name")
+  vendorUei               String?   @map("vendor_uei")
+  vendorCageCode          String?   @map("vendor_cage_code")
+
+  // Organization
+  contractingOfficeId     Int?      @map("contracting_office_id")
+  contractingOfficeName   String?   @map("contracting_office_name")
+  awardingAgency          String?   @map("awarding_agency")
+  awardingSubAgency       String?   @map("awarding_sub_agency")
+  fundingAgency           String?   @map("funding_agency")
+  fundingSubAgency        String?   @map("funding_sub_agency")
+
+  // Location
+  placeOfPerformanceState String?   @map("place_of_performance_state")
+  placeOfPerformanceCountry String? @map("place_of_performance_country")
+
+  // Metadata from USASpending
+  usaspendingAwardId      String?   @map("usaspending_award_id")
+  lastModifiedDate        DateTime? @map("last_modified_date")
+
+  // Timestamps
+  createdAt               DateTime  @default(now()) @map("created_at")
+  updatedAt               DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  modifications           ContractModification[]
+  subawards               Subaward[]
+  wasteScore              WasteScore?
+  contractingOffice       DoDOrganization? @relation(fields: [contractingOfficeId], references: [id])
+
+  @@index([vendorUei])
+  @@index([vendorName])
+  @@index([naicsCode])
+  @@index([pscCode])
+  @@index([awardingAgency])
+  @@index([awardDate])
+  @@index([contractingOfficeId])
+  @@map("service_contracts")
+}
+
+model ContractModification {
+  id                Int       @id @default(autoincrement())
+  contractId        Int       @map("contract_id")
+  modificationNumber String?  @map("modification_number")
+  actionDate        DateTime? @map("action_date")
+  actionType        String?   @map("action_type")
+  description       String?   @db.Text
+  obligatedChange   Decimal?  @map("obligated_change") @db.Decimal(15, 2)
+  obligatedTotal    Decimal?  @map("obligated_total") @db.Decimal(15, 2)
+
+  createdAt         DateTime  @default(now()) @map("created_at")
+
+  contract          ServiceContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@index([contractId])
+  @@index([actionDate])
+  @@map("contract_modifications")
+}
+
+model Subaward {
+  id                      Int       @id @default(autoincrement())
+  contractId              Int       @map("contract_id")
+  subawardNumber          String?   @map("subaward_number")
+  subawardAmount          Decimal?  @map("subaward_amount") @db.Decimal(15, 2)
+  subcontractorName       String?   @map("subcontractor_name")
+  subcontractorUei        String?   @map("subcontractor_uei")
+  subcontractorCageCode   String?   @map("subcontractor_cage_code")
+  description             String?   @db.Text
+  actionDate              DateTime? @map("action_date")
+  placeOfPerformanceState String?   @map("place_of_performance_state")
+
+  createdAt               DateTime  @default(now()) @map("created_at")
+
+  contract                ServiceContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@index([contractId])
+  @@index([subcontractorUei])
+  @@map("subawards")
+}
+
+model WasteScore {
+  id                  Int       @id @default(autoincrement())
+  contractId          Int       @unique @map("contract_id")
+
+  // Individual waste signals (0-100 each)
+  costGrowthPct       Decimal?  @map("cost_growth_pct") @db.Decimal(8, 2)
+  ceilingUtilization  Decimal?  @map("ceiling_utilization") @db.Decimal(8, 2)
+  contractAgeDays     Int?      @map("contract_age_days")
+  modificationCount   Int?      @map("modification_count")
+  passThruRatio       Decimal?  @map("pass_thru_ratio") @db.Decimal(8, 2)
+  vendorConcentration Int?      @map("vendor_concentration")
+  duplicateRisk       Decimal?  @map("duplicate_risk") @db.Decimal(8, 2)
+  impliedHourlyRate   Decimal?  @map("implied_hourly_rate") @db.Decimal(10, 2)
+
+  // Composite score
+  overallScore        Decimal?  @map("overall_score") @db.Decimal(8, 2)
+
+  // Flags for quick filtering
+  flagCostGrowth      Boolean   @default(false) @map("flag_cost_growth")
+  flagUnderutilized   Boolean   @default(false) @map("flag_underutilized")
+  flagOldContract     Boolean   @default(false) @map("flag_old_contract")
+  flagHighMods        Boolean   @default(false) @map("flag_high_mods")
+  flagPassThru        Boolean   @default(false) @map("flag_pass_thru")
+  flagVendorConc      Boolean   @default(false) @map("flag_vendor_conc")
+  flagDuplicate       Boolean   @default(false) @map("flag_duplicate")
+  flagHighRate        Boolean   @default(false) @map("flag_high_rate")
+
+  calculatedAt        DateTime  @default(now()) @map("calculated_at")
+
+  contract            ServiceContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@index([overallScore(sort: Desc)])
+  @@index([flagCostGrowth])
+  @@index([flagPassThru])
+  @@map("waste_scores")
+}
+
+model DoDOrganization {
+  id                Int       @id @default(autoincrement())
+  code              String?   @unique
+  name              String
+  level             String?   // agency, command, office
+  parentId          Int?      @map("parent_id")
+
+  createdAt         DateTime  @default(now()) @map("created_at")
+
+  parent            DoDOrganization?  @relation("OrgHierarchy", fields: [parentId], references: [id])
+  children          DoDOrganization[] @relation("OrgHierarchy")
+  contracts         ServiceContract[]
+
+  @@index([parentId])
+  @@index([level])
+  @@map("dod_organizations")
+}
