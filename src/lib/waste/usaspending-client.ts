@@ -12,8 +12,8 @@ export const SERVICE_NAICS_CODES = [
   "518210", // Data Processing
 ];
 
-// DoD agency codes for filtering
-export const DOD_AGENCY_CODES = ["097", "017", "021", "057", "096"]; // DoD, Navy, Army, AF, etc.
+// DoD agency name for filtering
+export const DOD_AGENCY_NAME = "Department of Defense";
 
 export interface ServiceContractResult {
   piid: string;
@@ -79,11 +79,11 @@ export async function searchDoDServicesContracts(
     const filters: Record<string, unknown> = {
       award_type_codes: ["A", "B", "C", "D"], // Contracts only
       naics_codes: naicsCodes,
-      agencies: DOD_AGENCY_CODES.map((code) => ({
+      agencies: [{
         type: "awarding",
         tier: "toptier",
-        toptier_code: code,
-      })),
+        name: DOD_AGENCY_NAME,
+      }],
     };
 
     if (startDate) {
