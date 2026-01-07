@@ -92,8 +92,14 @@ export default function WastePage() {
   const fetchStats = useCallback(async () => {
     try {
       const res = await fetch("/api/waste/stats");
+      if (!res.ok) {
+        console.error("Stats API error:", res.status);
+        return;
+      }
       const data = await res.json();
-      setStats(data);
+      if (data.overview) {
+        setStats(data);
+      }
     } catch (error) {
       console.error("Failed to fetch stats:", error);
     }
