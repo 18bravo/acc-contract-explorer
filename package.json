@@ -12,7 +12,8 @@
     "db:migrate": "prisma migrate dev",
     "db:import": "npx tsx scripts/import-data.ts",
     "db:setup-search": "npx tsx scripts/setup-search.ts",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "waste:sync": "npx tsx scripts/sync-waste-contracts.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.2.0",
