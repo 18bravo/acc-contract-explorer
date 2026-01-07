@@ -1,0 +1,17 @@
+apiVersion: 1
+
+datasources:
+  - name: PostgreSQL
+    type: postgres
+    url: db.prisma.io:5432
+    database: postgres
+    user: 74db93efc7ea6d77d53a196f5d626a1adf022685f886692c3a533db6738c8f89
+    secureJsonData:
+      password: ${POSTGRES_PASSWORD}
+    jsonData:
+      sslmode: require
+      maxOpenConns: 5
+      maxIdleConns: 2
+      connMaxLifetime: 14400
+    isDefault: true
+    editable: true

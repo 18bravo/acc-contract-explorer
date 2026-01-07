@@ -65,6 +65,9 @@ model TaskOrder {
   lastModifiedDate            String?   @map("last_modified_date")
   createdAt                   DateTime  @default(now()) @map("created_at")
 
+  // Full-text search (managed via raw SQL, kept for schema sync)
+  searchText                  Unsupported("tsvector")? @map("search_text")
+
   // Relation
   vehicle                     ContractVehicle? @relation(fields: [vehicleId], references: [id])
 
@@ -89,4 +92,95 @@ model SearchJob {
   completedAt     DateTime? @map("completed_at")
 
   @@map("search_jobs")
+}
+
+// ============================================================================
+// Budget Analytics Models
+// ============================================================================
+
+model BudgetLineItem {
+  id                  Int       @id @default(autoincrement())
+  fiscalYear          Int       @map("fiscal_year")
+  appropriationType   String    @map("appropriation_type") // RDT&E, Procurement, O&M
+  agency              String?
+  service             String?
+  programElement      String?   @map("program_element")
+  lineItemNumber      String?   @map("line_item_number")
+  programName         String?   @map("program_name")
+
+  // Funding amounts (in thousands of dollars)
+  priorYearActual     Decimal?  @map("prior_year_actual") @db.Decimal(15, 2)
+  currentYearEnacted  Decimal?  @map("current_year_enacted") @db.Decimal(15, 2)
+  budgetYearRequest   Decimal?  @map("budget_year_request") @db.Decimal(15, 2)
+  outyear1            Decimal?  @map("outyear_1") @db.Decimal(15, 2)
+  outyear2            Decimal?  @map("outyear_2") @db.Decimal(15, 2)
+  outyear3            Decimal?  @map("outyear_3") @db.Decimal(15, 2)
+  outyear4            Decimal?  @map("outyear_4") @db.Decimal(15, 2)
+  outyear5            Decimal?  @map("outyear_5") @db.Decimal(15, 2)
+
+  sourceDocumentUrl   String?   @map("source_document_url")
+  extractedAt         DateTime  @default(now()) @map("extracted_at")
+
+  narratives          BudgetNarrative[]
+
+  @@unique([fiscalYear, programElement, lineItemNumber, agency])
+  @@index([fiscalYear])
+  @@index([agency])
+  @@index([programElement])
+  @@index([appropriationType])
+  @@map("budget_line_items")
+}
+
+model BudgetNarrative {
+  id            Int       @id @default(autoincrement())
+  lineItemId    Int       @map("line_item_id")
+  narrativeType String?   @map("narrative_type") // mission, accomplishments, changes
+  content       String?   @db.Text
+  aiSummary     String?   @map("ai_summary") @db.Text
+  extractedAt   DateTime  @default(now()) @map("extracted_at")
+
+  lineItem      BudgetLineItem @relation(fields: [lineItemId], references: [id], onDelete: Cascade)
+
+  @@index([lineItemId])
+  @@map("budget_narratives")
+}
+
+model BudgetDocument {
+  id            Int       @id @default(autoincrement())
+  fiscalYear    Int       @map("fiscal_year")
+  agency        String?
+  documentType  String?   @map("document_type")
+  url           String
+  filename      String?
+  fileHash      String?   @map("file_hash")
+  localPath     String?   @map("local_path")
+  crawledAt     DateTime? @map("crawled_at")
+  parsedAt      DateTime? @map("parsed_at")
+  status        String    @default("pending") // pending, downloaded, parsed, failed
+  errorMessage  String?   @map("error_message") @db.Text
+
+  @@index([fiscalYear])
+  @@index([status])
+  @@index([agency])
+  @@map("budget_documents")
+}
+
+model BudgetTrend {
+  id                Int       @id @default(autoincrement())
+  programElement    String?   @map("program_element")
+  programName       String?   @map("program_name")
+  fiscalYear        Int       @map("fiscal_year")
+  agency            String?
+  appropriationType String?   @map("appropriation_type")
+  amount            Decimal?  @db.Decimal(15, 2)
+  yoyChangeDollars  Decimal?  @map("yoy_change_dollars") @db.Decimal(15, 2)
+  yoyChangePercent  Decimal?  @map("yoy_change_percent") @db.Decimal(8, 2)
+  fiveYearCagr      Decimal?  @map("five_year_cagr") @db.Decimal(8, 2)
+  trendDirection    String?   @map("trend_direction") // up, down, flat, new, terminated
+
+  @@unique([programElement, fiscalYear, agency, appropriationType])
+  @@index([trendDirection, fiscalYear])
+  @@index([yoyChangePercent(sort: Desc)])
+  @@index([fiscalYear])
+  @@map("budget_trends")
 }
