@@ -12,6 +12,28 @@ interface ParticleLogoProps {
   onTransitionComplete?: () => void;
 }
 
+// Create a circular sprite texture for smooth particles
+function createCircleTexture(): THREE.Texture {
+  const canvas = document.createElement("canvas");
+  canvas.width = 64;
+  canvas.height = 64;
+  const ctx = canvas.getContext("2d")!;
+
+  // Draw a soft circular gradient
+  const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  gradient.addColorStop(0, "rgba(255, 255, 255, 1)");
+  gradient.addColorStop(0.3, "rgba(255, 255, 255, 0.8)");
+  gradient.addColorStop(0.7, "rgba(255, 255, 255, 0.3)");
+  gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, 64, 64);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+  return texture;
+}
+
 export function ParticleLogo({
   mousePosition,
   isTransitioning,
@@ -22,6 +44,9 @@ export function ParticleLogo({
   const [logoPoints, setLogoPoints] = useState<Point3D[]>([]);
   const transitionProgress = useRef(0);
   const { camera } = useThree();
+
+  // Create circular texture for spherical particles
+  const circleTexture = useMemo(() => createCircleTexture(), []);
 
   // Load logo points on mount
   useEffect(() => {
@@ -152,12 +177,14 @@ export function ParticleLogo({
       {/* Particles */}
       <points ref={pointsRef} geometry={particleGeometry}>
         <pointsMaterial
-          size={2}
+          size={0.8}
+          map={circleTexture}
           vertexColors
           transparent
-          opacity={0.9}
+          opacity={0.95}
           sizeAttenuation
           blending={THREE.AdditiveBlending}
+          depthWrite={false}
         />
       </points>
 
