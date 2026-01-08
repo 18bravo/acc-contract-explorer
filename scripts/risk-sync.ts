@@ -3,6 +3,7 @@
  * Extracts observations, calculates volatility parameters, and scores contracts
  */
 
+import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
