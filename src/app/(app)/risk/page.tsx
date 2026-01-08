@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { NavTabs } from "@/components/NavTabs";
 import { Pagination } from "@/components/Pagination";
 import { RiskFilterBar, RiskFilters } from "@/components/RiskFilterBar";
 import { RiskContractTable } from "@/components/RiskContractTable";
@@ -111,21 +110,7 @@ export default function RiskPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      {/* Header */}
-      <header className="border-b border-zinc-800 bg-zinc-950">
-        <div className="max-w-[1800px] mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="text-red-500 font-bold text-xl">WARWERX</div>
-              <span className="text-zinc-600">|</span>
-              <span className="text-zinc-400">Cost Risk Model</span>
-            </div>
-            <NavTabs />
-          </div>
-        </div>
-      </header>
-
+    <div className="bg-black text-white">
       {/* Stats Bar */}
       {stats && (
         <div className="border-b border-zinc-800 bg-zinc-950/50">

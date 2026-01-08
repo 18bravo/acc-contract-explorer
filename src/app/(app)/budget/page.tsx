@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { NavTabs } from "@/components/NavTabs";
 import { StatsCard } from "@/components/StatsCard";
 import { BudgetFilterBar } from "@/components/BudgetFilterBar";
 import { BudgetTrendChart } from "@/components/BudgetTrendChart";
@@ -286,22 +285,7 @@ function BudgetPageContent() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-      {/* Header */}
-      <header className="border-b border-zinc-800 bg-black">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <img src="/warwerx-logo.png" alt="WARWERX" className="h-20 w-auto py-2" />
-              <div>
-                <h1 className="text-2xl font-bold text-white">Contract Explorer</h1>
-              </div>
-            </div>
-            <NavTabs />
-          </div>
-        </div>
-      </header>
-
+    <div className="bg-zinc-50 dark:bg-zinc-950">
       {/* Filter Bar */}
       <BudgetFilterBar options={filterOptions} />
 
