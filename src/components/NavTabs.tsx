@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const tabs = [
-  { name: "Contracts", href: "/" },
+  { name: "Contracts", href: "/contracts" },
   { name: "Budget", href: "/budget" },
   { name: "Waste", href: "/waste" },
   { name: "Risk", href: "/risk" },
@@ -16,9 +16,7 @@ export function NavTabs() {
   return (
     <nav className="flex space-x-1">
       {tabs.map((tab) => {
-        const isActive = tab.href === "/"
-          ? pathname === "/"
-          : pathname.startsWith(tab.href);
+        const isActive = pathname.startsWith(tab.href);
 
         return (
           <Link
