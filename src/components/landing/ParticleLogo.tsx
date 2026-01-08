@@ -80,29 +80,39 @@ export function ParticleLogo({
     return { positions, colors };
   }, [logoPoints]);
 
-  // Create connection lines between nearby particles
+  // Create connection lines between nearby particles (distributed across all points)
   const linePositions = useMemo(() => {
     if (logoPoints.length === 0) return new Float32Array(0);
 
+    const maxDistance = 6;
+    const maxConnectionsPerPoint = 3;
     const lines: number[] = [];
-    const maxDistance = 8;
-    const maxConnections = 3000;
-    let connectionCount = 0;
 
-    for (let i = 0; i < logoPoints.length && connectionCount < maxConnections; i++) {
-      for (let j = i + 1; j < logoPoints.length && connectionCount < maxConnections; j++) {
+    // For each point, find its nearest neighbors and connect
+    for (let i = 0; i < logoPoints.length; i++) {
+      const neighbors: { j: number; dist: number }[] = [];
+
+      // Find nearby points
+      for (let j = i + 1; j < logoPoints.length; j++) {
         const dx = logoPoints[i].x - logoPoints[j].x;
         const dy = logoPoints[i].y - logoPoints[j].y;
         const dz = logoPoints[i].z - logoPoints[j].z;
         const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
         if (dist < maxDistance) {
-          lines.push(
-            logoPoints[i].x, logoPoints[i].y, logoPoints[i].z,
-            logoPoints[j].x, logoPoints[j].y, logoPoints[j].z
-          );
-          connectionCount++;
+          neighbors.push({ j, dist });
         }
+      }
+
+      // Sort by distance and take closest few
+      neighbors.sort((a, b) => a.dist - b.dist);
+      const toConnect = neighbors.slice(0, maxConnectionsPerPoint);
+
+      for (const { j } of toConnect) {
+        lines.push(
+          logoPoints[i].x, logoPoints[i].y, logoPoints[i].z,
+          logoPoints[j].x, logoPoints[j].y, logoPoints[j].z
+        );
       }
     }
 
