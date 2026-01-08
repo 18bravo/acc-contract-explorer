@@ -7,6 +7,7 @@ const tabs = [
   { name: "Contracts", href: "/" },
   { name: "Budget", href: "/budget" },
   { name: "Waste", href: "/waste" },
+  { name: "Risk", href: "/risk" },
 ];
 
 export function NavTabs() {
