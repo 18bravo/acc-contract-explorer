@@ -6,7 +6,6 @@ import { VehicleCard } from "@/components/VehicleCard";
 import { TaskOrderTable } from "@/components/TaskOrderTable";
 import { Pagination } from "@/components/Pagination";
 import { UnifiedSearch } from "@/components/UnifiedSearch";
-import { NavTabs } from "@/components/NavTabs";
 
 interface Vehicle {
   id: string;
@@ -164,24 +163,7 @@ export default function ContractsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-      {/* Header */}
-      <header className="border-b border-zinc-800 bg-black">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <img src="/warwerx-logo.png" alt="WARWERX" className="h-20 w-auto py-2" />
-              <div>
-                <h1 className="text-2xl font-bold text-white">
-                  Contract Explorer
-                </h1>
-              </div>
-            </div>
-            <NavTabs />
-          </div>
-        </div>
-      </header>
-
+    <div className="bg-zinc-50 dark:bg-zinc-950">
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Unified Search Bar */}
         <div className="mb-8">
